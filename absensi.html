@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Anggota - Terhubung</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+        
+        .connection-status {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .status-connected {
+            background: rgba(76, 175, 80, 0.2);
+            color: #e8f5e9;
+        }
+        
+        .status-loading {
+            background: rgba(255, 193, 7, 0.2);
+            color: #fff8e1;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+            gap: 30px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 350px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-section {
+            flex: 2;
+            min-width: 350px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            color: #1a2980;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #26d0ce;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #26d0ce;
+            box-shadow: 0 0 0 3px rgba(38, 208, 206, 0.2);
+            outline: none;
+        }
+        
+        .input-field.error {
+            border-color: #ff5252;
+            background-color: rgba(255, 82, 82, 0.05);
+        }
+        
+        .error-message {
+            color: #ff5252;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(26, 41, 128, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-refresh {
+            background: linear-gradient(to right, #26d0ce, #1a2980);
+            margin-bottom: 20px;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            background: linear-gradient(to right, #1a2980, #26d0ce);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .attendance-table-container {
+            max-height: 450px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .attendance-table thead {
+            position: sticky;
+            top: 0;
+            background: #1a2980;
+            color: white;
+            z-index: 10;
+        }
+        
+        .attendance-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 3px solid #26d0ce;
+        }
+        
+        .attendance-table td {
+            padding: 14px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .attendance-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .attendance-table tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .department-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .dept-it {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .dept-hrd {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .dept-marketing {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .dept-finance {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .dept-operations {
+            background-color: #fce4ec;
+            color: #c2185b;
+        }
+        
+        .empty-data {
+            text-align: center;
+            padding: 50px 20px;
+            color: #888;
+            font-style: italic;
+        }
+        
+        .last-updated {
+            text-align: right;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .time-info {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #555;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .attendance-table-container {
+                max-height: 350px;
+            }
+            
+            .attendance-table {
+                font-size: 0.9rem;
+            }
+            
+            .attendance-table th,
+            .attendance-table td {
+                padding: 10px 12px;
+            }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Sistem Absensi Online</h1>
+            <p>Data absensi dapat dilihat oleh semua anggota</p>
+            <div class="time-info">
+                <span id="current-date"></span> | 
+                <span id="current-time"></span>
+            </div>
+            <div id="connection-status" class="connection-status status-loading">
+                <span class="loading"></span> Menghubungkan ke database...
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title">Form Absensi</h2>
+                <form id="attendance-form">
+                    <div class="form-group">
+                        <label for="name">Nama Lengkap *</label>
+                        <input type="text" id="name" class="input-field" placeholder="Masukkan nama lengkap Anda">
+                        <div id="name-error" class="error-message">Nama harus diisi!</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id-number">ID Anggota *</label>
+                        <input type="text" id="id-number" class="input-field" placeholder="Contoh: IT-001">
+                        <div id="id-error" class="error-message">ID anggota harus diisi!</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Divisi/Departemen *</label>
+                        <select id="department" class="input-field">
+                            <option value="">Pilih divisi/departemen</option>
+                            <option value="IT">IT & Teknologi</option>
+                            <option value="HRD">HRD & Personalia</option>
+                            <option value="Marketing">Pemasaran & Marketing</option>
+                            <option value="Finance">Keuangan & Finance</option>
+                            <option value="Operations">Operasional</option>
+                        </select>
+                        <div id="dept-error" class="error-message">Divisi harus dipilih!</div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submit-btn">
+                        📝 Tandai Kehadiran
+                    </button>
+                    
+                    <div id="success-message" class="success-message">
+                        ✅ Absensi berhasil dikirim! Data akan diperbarui.
+                    </div>
+                </form>
+                
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-count">0</div>
+                        <div class="stat-label">Total Hadir</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="today-count">0</div>
+                        <div class="stat-label">Hari Ini</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="it-count">0</div>
+                        <div class="stat-label">Divisi IT</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="data-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 class="section-title">Daftar Kehadiran</h2>
+                    <button id="refresh-btn" class="btn btn-refresh">
+                        🔄 Refresh Data
+                    </button>
+                </div>
+                
+                <div class="attendance-table-container">
+                    <table class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th width="5%">No</th>
+                                <th width="25%">Nama</th>
+                                <th width="15%">ID</th>
+                                <th width="20%">Divisi</th>
+                                <th width="20%">Tanggal</th>
+                                <th width="15%">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body">
+                            <tr>
+                                <td colspan="6" class="empty-data">
+                                    Memuat data absensi...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="last-updated">
+                    Terakhir diperbarui: <span id="last-updated-time">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================
+        // KONFIGURASI GOOGLE SHEETS
+        // ================================
+        
+        // Script ID Google Apps Script (GANTI DENGAN MILIK ANDA)
+        const GOOGLE_SCRIPT_ID = 'AKfycbzuNCYlCyPvI6zGBwV_8D6xAFW0DnCY1p6tybZ0MDRg_gQa-6mJbLm98nCghFKLjDkl';
+        
+        // URL untuk mengirim data ke Google Sheets
+        const GOOGLE_SCRIPT_URL = `https://script.google.com/macros/s/${GOOGLE_SCRIPT_ID}/exec`;
+        
+        // ================================
+        // FUNGSI UTAMA
+        // ================================
+        
+        // Update tanggal dan waktu
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString('id-ID', options);
+            const timeString = now.toLocaleTimeString('id-ID');
+            
+            document.getElementById('current-date').textContent = dateString;
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        // Update status koneksi
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connection-status');
+            
+            if (status === 'connected') {
+                statusElement.innerHTML = '✅ ' + message;
+                statusElement.className = 'connection-status status-connected';
+            } else if (status === 'loading') {
+                statusElement.innerHTML = '<span class="loading"></span> ' + message;
+                statusElement.className = 'connection-status status-loading';
+            } else if (status === 'error') {
+                statusElement.innerHTML = '❌ ' + message;
+                statusElement.className = 'connection-status';
+                statusElement.style.background = 'rgba(244, 67, 54, 0.2)';
+            }
+        }
+        
+        // Format badge departemen
+        function getDepartmentBadge(dept) {
+            const badges = {
+                'IT': 'dept-it',
+                'HRD': 'dept-hrd',
+                'Marketing': 'dept-marketing',
+                'Finance': 'dept-finance',
+                'Operations': 'dept-operations'
+            };
+            
+            return `<span class="department-badge ${badges[dept] || 'dept-it'}">${dept}</span>`;
+        }
+        
+        // Format tanggal
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+        
+        // Format waktu
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Ambil data dari Google Sheets
+        async function fetchAttendanceData() {
+            updateConnectionStatus('loading', 'Mengambil data terbaru...');
+            
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=get`);
+                
+                if (!response.ok) {
+                    throw new Error('Gagal mengambil data');
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    updateConnectionStatus('connected', `Terhubung - ${data.data.length} data absensi`);
+                    renderAttendanceTable(data.data);
+                    updateStatistics(data.data);
+                    updateLastUpdated();
+                    return data.data;
+                } else {
+                    throw new Error(data.message || 'Gagal mengambil data');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateConnectionStatus('error', 'Gagal mengambil data. Coba refresh halaman.');
+                
+                // Fallback: Tampilkan data dummy jika gagal
+                showFallbackData();
+                return [];
+            }
+        }
+        
+        // Tampilkan data fallback jika koneksi gagal
+        function showFallbackData() {
+            const tableBody = document.getElementById('attendance-table-body');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty-data">
+                        ❌ Gagal memuat data dari server.<br>
+                        <small>Pastikan koneksi internet aktif atau coba beberapa saat lagi.</small>
+                    </td>
+                </tr>
+            `;
+            
+            // Reset stats
+            document.getElementById('total-count').textContent = '0';
+            document.getElementById('today-count').textContent = '0';
+            document.getElementById('it-count').textContent = '0';
+        }
+        
+        // Render tabel kehadiran
+        function renderAttendanceTable(data) {
+            const tableBody = document.getElementById('attendance-table-body');
+            
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-data">
+                            Belum ada data absensi. Jadilah yang pertama!
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Urutkan berdasarkan tanggal (terbaru di atas)
+            const sortedData = [...data].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+            
+            let tableHTML = '';
+            
+            sortedData.forEach((item, index) => {
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${item.name}</strong></td>
+                        <td><code>${item.id}</code></td>
+                        <td>${getDepartmentBadge(item.department)}</td>
+                        <td>${formatDate(item.timestamp)}</td>
+             
